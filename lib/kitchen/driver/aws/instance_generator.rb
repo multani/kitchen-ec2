@@ -48,14 +48,14 @@ module Kitchen
           client = ::Aws::EC2::Client.new(region: config[:region])
           if config[:subnet_id].nil? && config[:subnet_filter]
             subnets = client.describe_subnets(
-              filters: [
-                {
-                  name: "tag:#{config[:subnet_filter][:tag]}",
-                  values: [config[:subnet_filter][:value]],
-                },
-              ]
+                filters: config[:subnet_filter].fetch(:filters, {}).map do |key, value|
+                  {
+                    name: key,
+                    values: [value]
+                  }
+                end
             ).subnets
-            raise "The subnet tagged '#{config[:subnet_filter][:tag]}:#{config[:subnet_filter][:value]}' does not exist!" unless subnets.any?
+            raise "The subnet tagged '#{config[:subnet_filter]}:#{config[:subnet_filter]}' does not exist!" unless subnets.any?
 
             # => Select the least-populated subnet if we have multiple matches
             subnet = subnets.max_by { |s| s[:available_ip_address_count] }

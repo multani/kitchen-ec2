@@ -97,12 +97,13 @@ module Kitchen
         def find_image(image_search)
           driver.debug("Searching for images matching #{image_search} ...")
           # Convert to ec2 search format (pairs of name+values)
-          filters = image_search.map do |key, value|
-            { name: key.to_s, values: Array(value).map(&:to_s) }
+          filters = image_search
+          filters[:filters] = image_search.fetch(:filters, {}).map do |key, value|
+            {name: key, values: [value]}
           end
 
           # We prefer most recent first
-          images = driver.ec2.resource.images(filters: filters)
+          images = driver.ec2.resource.images(filters)
           images = sort_images(images)
           show_returned_images(images)
 
